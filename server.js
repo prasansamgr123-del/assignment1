@@ -36,6 +36,29 @@ app.post("/api/professionals", (req, res) => {
   res.status(201).json(newProfessional);
 });
 
+app.put("/api/professionals/:id", (req, res) => {
+  const id = req.params.id;
+  const idInNumber = parseInt(id);
+  const foundProfessional = professionals.find(
+    (professional) => professional.id === idInNumber,
+  );
+
+  if (foundProfessional === undefined) {
+    return res.status(404).json({ message: "Professional not found" });
+  }
+
+  const name = req.body.name;
+  const category = req.body.category;
+
+  if (!name || !category) {
+    return res.status(400).json({ message: "Name and category are required" });
+  }
+
+  foundProfessional.name = name;
+  foundProfessional.category = category;
+  res.status(200).json(foundProfessional);
+});
+
 app.delete("/api/professionals/:id", (req, res) => {
   const id = req.params.id;
   const idInNumber = parseInt(id);

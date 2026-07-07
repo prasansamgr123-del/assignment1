@@ -63,6 +63,42 @@ app.post("/api/professionals", (req, res) => {
   res.status(201).json(newProfessional);
 });
 
+// ---- UPDATE ----
+// Handle PUT requests — used to update an existing professional identified by its id.
+app.put("/api/professionals/:id", (req, res) => {
+  // Read the id from the URL and convert it to a number (same pattern as GET-by-id).
+  const id = req.params.id;
+  const idInNumber = parseInt(id);
+  // Find the professional we want to update. .find() returns the object itself,
+  // so changing it here also changes it inside the array (objects are shared by reference).
+  const foundProfessional = professionals.find(
+    (professional) => professional.id === idInNumber,
+  );
+
+  // If no professional has that id, .find() returns undefined — respond with 404 Not Found.
+  if (foundProfessional === undefined) {
+    return res.status(404).json({ message: "Professional not found" });
+  }
+
+  // Read the new values the client sent in the request body.
+  const name = req.body.name;
+  const category = req.body.category;
+
+  // Validation: both fields are required for a full update (that's what PUT means).
+  // !name is true for any "falsy" value — undefined, null, empty string "" — so this
+  // also rejects blank inputs, not just missing ones.
+  if (!name || !category) {
+    // 400 = Bad Request (the client sent invalid/incomplete data).
+    return res.status(400).json({ message: "Name and category are required" });
+  }
+
+  // Overwrite the old values with the new ones. This mutates the object in the array.
+  foundProfessional.name = name;
+  foundProfessional.category = category;
+  // Send back the updated professional with status 200 (OK).
+  res.status(200).json(foundProfessional);
+});
+
 // ---- DELETE ----
 // Handle DELETE requests to remove a professional by id.
 app.delete("/api/professionals/:id", (req, res) => {
