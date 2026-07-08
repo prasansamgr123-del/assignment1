@@ -1,75 +1,122 @@
+require("dotenv").config();
+
 const express = require("express");
-const professionals = require("./data/professional");
+const mongoose = require("mongoose");
+const Professional = require("./models/professional");
 
 const app = express();
 app.use(express.json());
 
-app.get("/api/professionals", (req, res) => {
-  res.status(200).json(professionals);
+const dns = require("dns");
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
+
+// Tell Express to use EJS as the templating engine.
+// By default it looks for .ejs files inside a "views" folder.
+app.set("view engine", "ejs");
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((error) => console.error("MongoDB connection error:", error));
+
+// ---- PAGE ROUTE (renders HTML with EJS) ----
+// This route returns a web page, not JSON. We fetch the data, then res.render()
+// fills the "professionals.ejs" template with it and sends back the finished HTML.
+app.get("/", async (req, res) => {
+  try {
+    const professionals = await Professional.find();
+    res.render("professionals", { professionals });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Something went wrong");
+  }
 });
 
-app.get("/api/professionals/:id", (req, res) => {
-  const id = req.params.id;
-  const idInNumber = parseInt(id);
-  const foundProfessional = professionals.find(
-    (professional) => professional.id === idInNumber,
-  );
-  if (foundProfessional === undefined) {
-    return res.status(404).json({ message: "Professional not found" });
+app.get("/api/professionals", async (req, res) => {
+  try {
+    const professionals = await Professional.find();
+    res.status(200).json(professionals);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message || "Something went wrong" });
   }
-  res.status(200).json(foundProfessional);
 });
 
-app.post("/api/professionals", (req, res) => {
-  const name = req.body.name;
-  const category = req.body.category;
-
-  if (name === undefined || category === undefined) {
-    return res.status(400).json({ message: "Name and category are required" });
+app.get("/api/professionals/:id", async (req, res) => {
+  try {
+    const professional = await Professional.findById(req.params.id);
+    if (professional === null) {
+      return res.status(404).json({ message: "Professional not found" });
+    }
+    res.status(200).json(professional);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message || "Something went wrong" });
   }
-  const newProfessional = {
-    id: professionals.length + 1,
-    name: name,
-    category: category,
-  };
-  professionals.push(newProfessional);
-  res.status(201).json(newProfessional);
 });
 
-app.put("/api/professionals/:id", (req, res) => {
-  const id = req.params.id;
-  const idInNumber = parseInt(id);
-  const foundProfessional = professionals.find(
-    (professional) => professional.id === idInNumber,
-  );
+app.post("/api/professionals", async (req, res) => {
+  try {
+    const name = req.body.name;
+    const category = req.body.category;
 
-  if (foundProfessional === undefined) {
-    return res.status(404).json({ message: "Professional not found" });
+    if (!name || !category) {
+      return res
+        .status(400)
+        .json({ message: "Name and category are required" });
+    }
+
+    const newProfessional = await Professional.create({ name, category });
+    res.status(201).json(newProfessional);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message || "Something went wrong" });
   }
-
-  const name = req.body.name;
-  const category = req.body.category;
-
-  if (!name || !category) {
-    return res.status(400).json({ message: "Name and category are required" });
-  }
-
-  foundProfessional.name = name;
-  foundProfessional.category = category;
-  res.status(200).json(foundProfessional);
 });
 
-app.delete("/api/professionals/:id", (req, res) => {
-  const id = req.params.id;
-  const idInNumber = parseInt(id);
-  const index = professionals.findIndex((p) => p.id === idInNumber);
+app.put("/api/professionals/:id", async (req, res) => {
+  try {
+    const name = req.body.name;
+    const category = req.body.category;
 
-  if (index === -1) {
-    return res.status(404).json({ message: "Professional not found" });
+    if (!name || !category) {
+      return res
+        .status(400)
+        .json({ message: "Name and category are required" });
+    }
+
+    const updatedProfessional = await Professional.findByIdAndUpdate(
+      req.params.id,
+      { name, category },
+      { new: true },
+    );
+
+    if (updatedProfessional === null) {
+      return res.status(404).json({ message: "Professional not found" });
+    }
+
+    res.status(200).json(updatedProfessional);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong" });
   }
+});
 
-  professionals.splice(index, 1);
-  res.status(200).json({ message: "Professional deleted successfully" });
+app.delete("/api/professionals/:id", async (req, res) => {
+  try {
+    const deletedProfessional = await Professional.findByIdAndDelete(
+      req.params.id,
+    );
+
+    if (deletedProfessional === null) {
+      return res.status(404).json({ message: "Professional not found" });
+    }
+
+    res.status(200).json({ message: "Professional deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
 });
 
 const PORT = 3000;
