@@ -24,9 +24,6 @@ Unlike the earlier in-memory version, the data now lives in a **MongoDB database
 so **changes survive a server restart**. Mongoose is used to define the shape of the
 data (a _schema_) and to talk to the database.
 
-There is also a small **web page** at `/` that renders the list of professionals as
-HTML using an [EJS](https://ejs.co/) template.
-
 ---
 
 ## Project structure
@@ -36,8 +33,6 @@ demo1/
 ├── server.js              # The web server and all the API routes
 ├── models/
 │   └── professional.js    # The Mongoose schema/model for a professional
-├── views/
-│   └── professionals.ejs  # HTML template rendered at "/"
 ├── data/
 │   └── professional.js    # Old seed data (from the in-memory version)
 ├── .env                   # Your secrets/config — NOT committed (see .env.example)
@@ -126,8 +121,7 @@ Server live on port 3000
 Connected to MongoDB
 ```
 
-The server is now running at **http://localhost:3000** (open it in a browser to see
-the EJS page).
+The server is now running at **http://localhost:3000**.
 
 ---
 
@@ -139,16 +133,7 @@ Base URL: `http://localhost:3000`
 > Note: ids are now MongoDB `ObjectId` strings (like `665f1c2a4b3e2a1d9c8b4567`),
 > not small numbers. Copy a real `_id` from a `GET` response to use in the routes below.
 
-### 1. View the web page
-
-```
-GET /
-```
-
-Returns an HTML page (rendered from `views/professionals.ejs`) listing all
-professionals.
-
-### 2. Get all professionals
+### 1. Get all professionals
 
 ```
 GET /api/professionals
@@ -156,7 +141,7 @@ GET /api/professionals
 
 Returns the full list as JSON — **`200 OK`**.
 
-### 3. Get one professional by id
+### 2. Get one professional by id
 
 ```
 GET /api/professionals/:id
@@ -171,7 +156,7 @@ The `:id` is a **route parameter**, e.g.
 { "message": "Professional not found" }
 ```
 
-### 4. Add a new professional
+### 3. Add a new professional
 
 ```
 POST /api/professionals
@@ -191,7 +176,7 @@ Send the new data as JSON in the **request body**:
 { "message": "Name and category are required" }
 ```
 
-### 5. Update a professional
+### 4. Update a professional
 
 ```
 PUT /api/professionals/:id
@@ -206,7 +191,7 @@ Send the new values as JSON:
 **Response — `200 OK`** (returns the updated document). Returns `404` if the id
 doesn't exist, or `400` if `name`/`category` is missing.
 
-### 6. Delete a professional
+### 5. Delete a professional
 
 ```
 DELETE /api/professionals/:id
@@ -282,4 +267,5 @@ curl -X DELETE http://localhost:3000/api/professionals/665f1c2a4b3e2a1d9c8b4567
   fails (e.g. a bad `category` or a too-short `name`).
 - Handle an invalid `ObjectId` format gracefully (a malformed id currently throws).
 - Add pagination or sorting to the list endpoint.
-- Build a form on the EJS page to add professionals from the browser.
+- Render the list as an HTML page (e.g. with a templating engine like EJS) — see the
+  `with-ejs` branch for one way to do this.

@@ -10,27 +10,10 @@ app.use(express.json());
 const dns = require("dns");
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
-// Tell Express to use EJS as the templating engine.
-// By default it looks for .ejs files inside a "views" folder.
-app.set("view engine", "ejs");
-
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch((error) => console.error("MongoDB connection error:", error));
-
-// ---- PAGE ROUTE (renders HTML with EJS) ----
-// This route returns a web page, not JSON. We fetch the data, then res.render()
-// fills the "professionals.ejs" template with it and sends back the finished HTML.
-app.get("/", async (req, res) => {
-  try {
-    const professionals = await Professional.find();
-    res.render("professionals", { professionals });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Something went wrong");
-  }
-});
 
 app.get("/api/professionals", async (req, res) => {
   try {
