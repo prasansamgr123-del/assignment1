@@ -71,7 +71,7 @@ app.put("/api/professionals/:id", async (req, res) => {
     const updatedProfessional = await Professional.findByIdAndUpdate(
       req.params.id,
       { name, category },
-      { new: true },
+      { new: true, runValidators: true },
     );
 
     if (updatedProfessional === null) {
@@ -81,7 +81,7 @@ app.put("/api/professionals/:id", async (req, res) => {
     res.status(200).json(updatedProfessional);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({ message: error.message || "Something went wrong" });
   }
 });
 
@@ -98,7 +98,7 @@ app.delete("/api/professionals/:id", async (req, res) => {
     res.status(200).json({ message: "Professional deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({ message: error.message || "Something went wrong" });
   }
 });
 
