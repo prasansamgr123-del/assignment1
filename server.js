@@ -7,6 +7,8 @@ const Professional = require("./models/professional");
 const app = express();
 app.use(express.json());
 
+
+
 const dns = require("dns");
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
@@ -48,6 +50,7 @@ app.post("/api/professionals", async (req, res) => {
         .status(400)
         .json({ message: "Name and category are required" });
     }
+
 
     const newProfessional = await Professional.create({ name, category });
     res.status(201).json(newProfessional);
@@ -101,6 +104,11 @@ app.delete("/api/professionals/:id", async (req, res) => {
     res.status(500).json({ message: error.message || "Something went wrong" });
   }
 });
+
+const authController = require("./controller/authController");
+app.post("/api/register", authController.register);
+app.post("/api/login", authController.login);
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
